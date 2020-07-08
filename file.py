@@ -1,5 +1,4 @@
-from influxdb import InfluxDBClient, resultset
-import datetime
+from influxdb import InfluxDBClient
 from time import sleep
 from random import randint
 
@@ -10,19 +9,25 @@ client.switch_database('Table')
 
 json_body = []
 
-for param in range(10):
-    for i in range(5):
+for param in range(5):
+    phase = 0
+    freq = randint(1, 5)
+    value = randint(0, 50)
+    while phase <= 9:
         s = {
             "measurement": "sec",
             "tags": {
-                "param": param,
-                "phase": i
+                "param": str(param),
+                "phase": phase,
+                "freq": freq
             },
             "fields": {
-                "value": param + i
+                "value": value
             }
         }
-        # sleep(0.1)
+        value += randint(-1, 1)
+        phase += freq
+        sleep(freq)
         json_body.append(s)
 
 client.write_points(json_body)

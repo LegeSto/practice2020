@@ -15,8 +15,7 @@ class Window(QMainWindow):
 
         self.show()
 
-        param = '1'
-        self.create_line_chart(param)
+        self.create_line_chart(self.choose_param())
 
     def connect(self, param):
         client = InfluxDBClient(host='localhost', port=8086)
@@ -27,7 +26,7 @@ class Window(QMainWindow):
     def create_line_chart(self, param):
         series = QLineSeries()
         for point in self.connect(param):
-            series.append(int(point['phase']), point['value'])
+            series.append(float(point['phase']), point['value'])
 
         chart = QChart()
 
@@ -43,6 +42,11 @@ class Window(QMainWindow):
         chartview.setRenderHint(QPainter.Antialiasing)
 
         self.setCentralWidget(chartview)
+
+    def choose_param(self):
+        print('Choose an parameter:')
+        param = input()
+        return param
 
 
 App = QApplication(sys.argv)
