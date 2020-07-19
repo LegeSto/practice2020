@@ -4,8 +4,9 @@ from influxdb import InfluxDBClient
 from os import abort
 from time import sleep
 from random import randint
+from mqtt import Broker
 
-
+br = Broker()
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
 
@@ -89,7 +90,9 @@ def create_param():
             "tags": {
                 "param": name,
                 "phase": phase,
-                "freq": freq
+                "freq": freq,
+                "broker": br.broker_address,
+                "topic": br.topic
             },
             "fields": {
                 "value": value

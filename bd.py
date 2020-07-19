@@ -1,9 +1,10 @@
 from influxdb import InfluxDBClient
 from time import sleep
 from random import randint
+from mqtt import Broker
 
 
-class Param():
+class Param(object):
     def __init__(self, name, freq, value):
         self.name = name
         self.freq = freq
@@ -11,15 +12,22 @@ class Param():
 
 
 def conn():
+    global client
+    client = InfluxDBClient(host='localhost', port=8086)
+    client.create_database('Table')
+    client.switch_database('Table')
+
+
+def get_point():
     results = client.query('select * from sec')
     return results.get_points()
 
 
-def list_param(points):
+def list_param():
     count = 0
     memory = ''
 
-    for point in conn():
+    for point in get_point():
         if point['param'] != memory:
             count += 1
             print("Param: %s" % (point['param']), end=', ')
@@ -43,7 +51,9 @@ def add_param():
                 "tags": {
                     "param": p.name,
                     "phase": phase,
-                    "freq": p.freq
+                    "freq": p.freq,
+                    "broker": br.broker_address,
+                    "topic": br.topic
                 },
                 "fields": {
                     "value": p.value
@@ -56,27 +66,25 @@ def add_param():
         client.write_points(s)
 
 
-client = InfluxDBClient(host='localhost', port=8086)
-client.create_database('Table')
-client.switch_database('Table')
+if __name__ == "__main__":
+    conn()
+    br = Broker()
 
-stop = True
+    while True:
+        print('Choose an action (add, list, stop)')
+        act = input().strip()
 
-while stop:
-    print('Choose an action (add, list, stop)')
-    act = input().strip()
+        if act == 'add':
+            add_param()
+        elif act == 'list':
+            list_param()
+        elif act == 'stop':
+            break
+        else:
+            print('Unknown action')
+            break
 
-    if act == 'add':
-        add_param()
-    elif act == 'list':
-        list_param(conn())
-    elif act == 'stop':
-        stop = False
-    else:
-        print('Unknown action')
-        stop = False
-
-"""
-for point in conn():
-    print("Time: %s, param: %s, phase: %s, value: %i" % (point['time'], point['param'], point['phase'], point['value']))
-"""
+    """
+    for point in conn():
+        print("Time: %s, param: %s, phase: %s, value: %i" % (point['time'], point['param'], point['phase'], point['value']))
+    """
