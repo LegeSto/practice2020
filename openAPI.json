@@ -1,0 +1,93 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "OpenAPI",
+    "description": "Practice 2020",
+    "version": "1.0",
+    "contact": {
+      "name": "Vadim"
+    }
+  },
+  "servers" : [ {
+    "url" : "/"
+  } ],
+  "paths": {
+    "/": {
+      "get":{
+        "summary": "Home page"
+      }
+    },
+    "/resources": {
+      "get": {
+        "summary": "Output of the number of parameters and search by id",
+        "parameters": {
+          "id": {
+            "name" : "id",
+            "in" : "query",
+            "description" : "id values parameters",
+            "required" : true,
+            "style" : "form",
+            "schema" : {
+              "type" : "string"
+          }
+        }
+      }
+    },
+    "/resources/all": {
+      "get": {
+        "summary": "Display of all parameters and all their values"
+      }
+    },
+    "/resources/read_time": {
+      "get": {
+        "summary": "Read parameter selection interface"
+        }
+      },
+      "post": {
+        "summary": "Prints time to read from databases",
+        "parameters": {
+          "id": {
+            "name": "id",
+            "in": "query",
+            "description": "id values parameters",
+            "required": true,
+            "style": "form",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "/add_param": {
+      "get": {
+        "summary": "Parameter adding interface"
+        },
+      "post": {
+        "summary": "Adding parameter",
+        "parameters": {
+          "name": {
+            "name": "name",
+            "in": "query",
+            "description": "name parameter",
+            "required": true,
+            "style": "form",
+            "schema": {
+              "type": "string"
+            },
+            "value": {
+              "name": "value",
+              "in": "query",
+              "description": "initial value parameter",
+              "required": true,
+              "style": "form",
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
