@@ -1,28 +1,45 @@
 import flask
-from flask import request, jsonify
+from flask import request, jsonify, render_template
 from influxdb import InfluxDBClient
-from os import abort
-from time import sleep
-from random import randint
-from mqtt import Broker
+from datetime import datetime
+from file import add_param_in_list
 
-br = Broker()
+
 app = flask.Flask(__name__)
-app.config["DEBUG"] = True
 
-client = InfluxDBClient(host='localhost', port=8086)
-client.create_database('Table')
-client.switch_database('Table')
-results = client.query('select * from sec')
-points = results.get_points()
 
-books = []
-count = 0
+def db_connect():
+    global points, client
+    client = InfluxDBClient(host='localhost', port=8086)
+    client.create_database('Table')
+    client.switch_database('Table')
+    results = client.query('select * from sec')
+    points = results.get_points()
 
-for point in points:
-    point['id'] = count
-    count += 1
-    books.append(point)
+
+def init_books():
+    global books
+    books = []
+    count = 0
+
+    for point in points:
+        point['id'] = count
+        count += 1
+        books.append("Time: %s, param: %s, phase: %s, value: %i" % \
+                     (point['time'], point['param'], point['phase'], point['value']))
+
+
+def reading_time(param):
+    time_run = datetime.now()
+    results = client.query('select ' + param + ' from sec')
+    print('select ' + param + ' from sec')
+    points_time = results.get_points()
+    read_time = datetime.now() - time_run
+    return str(read_time)
+
+
+db_connect()
+init_books()
 
 
 @app.route('/', methods=['GET'])
@@ -35,8 +52,18 @@ def api_all():
     return jsonify(books)
 
 
+@app.route('/resources/read_time', methods=['POST', 'GET'])
+def read_time():
+    if request.method == 'POST':
+        param = request.form['var']
+        print(param)
+        return reading_time(str(param))
+    else:
+        return render_template('read_time.html')
+
+
 @app.errorhandler(404)
-def page_not_found(e):
+def page_not_found():
     return "<h1>404</h1><p>The resource could not be found.</p>", 404
 
 
@@ -75,36 +102,17 @@ def api_filter():
     return jsonify(result)
 
 
-@app.route('/resources/all', methods=['POST'])
-def create_param():
-    if not request.json or not 'title' in request.json:
-        abort(400)
-    name, freq, value = input().split()
-    print('Wait...')
+@app.route('/add_param', methods=['POST', 'GET'])
+def new_num():
+    if request.method == 'POST':
+        name = request.form['var']
+        value = request.form['val']
+        add_param_in_list(name, value)
 
-    phase = 0
-
-    while phase <= 10:
-        s = [{
-            "measurement": "sec",
-            "tags": {
-                "param": name,
-                "phase": phase,
-                "freq": freq,
-                "broker": br.broker_address,
-                "topic": br.topic
-            },
-            "fields": {
-                "value": value
-            }
-        }]
-
-        value += randint(-1, 1)
-        phase += freq
-        sleep(freq)
-        client.write_points(s)
-
-    return jsonify(s), 201
+    else:
+        return render_template('add_param.html')
 
 
-app.run()
+if __name__ == "__main__":
+
+    app.run()
