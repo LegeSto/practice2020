@@ -19,7 +19,7 @@ def thread_function():
     print(client.get_list_database())
     client.switch_database('Table')
 
-    list_param = {'F': 1}
+    list_param = {}
 
     for param in range(5):
         param = 'num' + str(param)
@@ -55,8 +55,6 @@ def thread_function():
         sleep(2)
 
 
-
-
 if __name__ == "__main__":
 
     x = threading.Thread(target=thread_function)
@@ -69,12 +67,11 @@ if __name__ == "__main__":
     results = client.query('select * from sec')
     points = results.get_points()
     for point in points:
-        print("Time: %s, param: %s, phase: %s, value: %i" % (point['time'], point['param'], point['phase'], point['value']))
+        print("Time: %s, param: %s, phase: %s, value: %i" % \
+              (point['time'], point['param'], point['phase'], point['value']))
 
     API.app.run()
 
 '''
     graf.graph()
 '''
-
-
